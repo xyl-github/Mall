@@ -38,7 +38,7 @@
                    required>
         </div>
         <div class="row">
-            <div class="col-sm-6 offset-sm-3" >
+            <div class="col-md-12" >
                 <button @click="login()" class="btn btn-md btn-primary btn-block" style="margin-top: 15px;" type="button">
                     登录
                 </button>
