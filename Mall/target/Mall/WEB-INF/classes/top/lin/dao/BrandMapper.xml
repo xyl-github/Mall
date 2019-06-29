@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.lin.dao.BrandMapper">
+    <select id="inquireBrandByShopid" parameterType="int" resultType="top.lin.entity.Brand">
+        select * from brand where shopid = #{shopid}
+    </select>
+
+    <insert id="insertBrand" parameterType="top.lin.entity.Brand">
+        insert into brand(shopid, bname, logo, status) values (#{shopid}, #{bname}, #{logo}, #{status})
+    </insert>
+
+    <update id="updateBrand" parameterType="top.lin.entity.Brand">
+        update brand set shopid = #{shopid}, bname = #{bname}, logo = #{logo}, status = #{status} where bid = #{bid}
+    </update>
+    <delete id="deleteBrandByBid" parameterType="int">
+        delete from brand where bid = #{bid}
+    </delete>
+</mapper>

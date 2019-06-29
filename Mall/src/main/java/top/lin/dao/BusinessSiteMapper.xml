@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.lin.dao.BusinessSiteMapper">
+    <select id="inquireBusinessSiteByShopid" parameterType="int" resultType="top.lin.entity.BusinessSite">
+        select * from business_site where shopid = #{shopid}
+    </select>
+    <insert id="insertBusinessSite" parameterType="top.lin.entity.BusinessSite" useGeneratedKeys="true"
+            keyProperty="bsid">
+        insert into business_site(shopid, bsname, introduce, status)
+         values (#{shopid}, #{bsname}, #{introduce}, #{status})
+    </insert>
+
+    <update id="updateBusinessSite" parameterType="top.lin.entity.BusinessSite">
+        update into business_site set shopid = #{shopid}, bsname = #{bsname}, introduce = #{introduce},
+        status = #{status} where bsid = #{bsid}
+    </update>
+
+    <delete id="deleteBusinessSite" parameterType="int">
+        delete from business_site where bsid = #{bsid}
+    </delete>
+</mapper>

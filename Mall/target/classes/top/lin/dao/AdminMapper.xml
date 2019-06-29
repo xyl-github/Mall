@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.lin.dao.AdminMapper">
+
+    <resultMap id="rm_admin" type="top.lin.entity.Admin">
+        <id property="aid" column="aid"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result column="aname" property="aname"/>
+        <result property="tel" column="tel"/>
+        <result column="status" property="status"/>
+        <result property="type" column="mname"/>
+        <result property="shopid" column="shopid"/>
+
+        <association property="shop" column="shopid" javaType="top.lin.entity.Shop"
+                     select="top.lin.dao.ShopMapper.inquireShopByShopid" fetchType="lazy"></association>
+    </resultMap>
+
+    <select id="inquireAdminByUser" resultMap="rm_admin" parameterType="string">
+        select * from admin, manager where username = #{username} and admin.mid = manager.mid;
+    </select>
+
+    <select id="inquireAdminFromIndex" resultMap="rm_admin">
+        select * from admin, manager where admin.mid = manager.mid limit ${index}, ${max};
+    </select>
+
+    <select id="inquireAdminByAid" resultMap="rm_admin" parameterType="int">
+        select * from admin where aid = #{aid}
+    </select>
+
+    <insert id="insertAdmin" parameterType="top.lin.entity.Admin">
+        insert into admin(username, password, aname, shopid, tel, status, mid)
+        values(#{username}, #{password}, #{aname}, #{shopid}, #{tel}, #{status}, #{type})
+    </insert>
+
+    <update id="updateAdmin" parameterType="top.lin.entity.Admin">
+        update admin set username = #{username}, password = #{password}, aname = #{aname}, shopid = shopid,
+        tel = #{tel}, status = #{status}, mid = #{type} where aid = #{aid}
+    </update>
+    
+    <delete id="deleteAdminById">
+        delete from admin where aid = #{aid}
+    </delete>
+
+    <resultMap id="rm_option_status" type="top.lin.entity.OptionStatus">
+        <id column="oid" property="id"/>
+        <result property="shopId" column="shopid"/>
+        <result property="date" column="odate"/>
+        <result property="pv" column="pv"/>
+        <result property="uv" column="uv"/>
+        <result property="gameCoupon" column="game_coupon"/>
+        <result property="heanCoupon" column="hean_coupon"/>
+        <result property="floorCoupon" column="floor_coupon"/>
+        <result property="parking" column="parking"/>
+        <result property="comment" column="comment"/>
+        <result property="opinion" column="opinion"/>
+        <result property="fightfChartPV" column="fightf_chart_pv"/>
+        <result property="fightfChartUV" column="fightf_chart_uv"/>
+        <result property="yesYesTouchPV" column="yes_yes_touch_pv"/>
+        <result property="yesYesTouchUV" column="yes_yes_touch_uv"/>
+    </resultMap>
+
+    <select id="inquireOptionStatusByShopid" resultMap="rm_option_status">
+        select * from option_status where shopid = #{shopid} and date(odate) between #{startDate} and #{endDate}
+    </select>
+</mapper>

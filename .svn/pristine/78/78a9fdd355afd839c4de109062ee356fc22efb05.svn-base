@@ -1,0 +1,386 @@
+<%@ taglib prefix="v-bind" uri="http://www.springframework.org/tags/form" %>
+<%--
+  Created by IntelliJ IDEA.
+  User: admin
+  Date: 2019/6/22
+  Time: 16:49
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>管理员权限设置</title>
+    <link href="/css/bootstrap.min.css?version=2019" rel="stylesheet">
+    <script src="/js/jquery-3.3.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/vue.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/axios.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<div class="container" id="app" style="margin-top: 2%">
+    <div class="container">
+        <div class="row">
+            <form class="form-inline" role="form">
+
+                <div class="form-group">
+                    <button type="button" @click="add()" class="btn btn-default"
+                            style="border-spacing: 1px;border-color: #ececf6"
+                    >添加管理员
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <table class="table table-bordered table-hover tab-content text-center">
+        <tr>
+            <td>管理员类型</td>
+            <td>权限</td>
+            <td>管理员姓名</td>
+            <td>管理员电话</td>
+            <td>账号</td>
+            <td>状态</td>
+            <td>操作</td>
+        </tr>
+        <tr v-for="admin in adminList">
+            <td v-text="admin.type">超级管理员</td>
+            <td v-text="admin.type"></td>
+            <td v-text="admin.name">超级管理员</td>
+            <td v-text="admin.tel">15010327826</td>
+            <td v-text="admin.user">admin</td>
+            <td v-text="admin.status">启用</td>
+            <td>
+                <button type="button" @click="update(admin)" class="btn btn-default"
+                        style="border-spacing: 1em;border-color: #ececf6">修改
+                </button>
+                <button type="button" @click="del(admin)" class="btn btn-danger">删除</button>
+            </td>
+        </tr>
+    </table>
+
+    <div class="modal fade bs-example-modal-lg" id="updateModel" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel" style="float: left;">添加/修改 管理员</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+
+                    <form class="form-horizontal" role="form">
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员类型</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" v-model="updateAdmin.type">
+                                    <option v-for="admin in admins"  v-bind:value="admin" >{{admin}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员姓名</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="updateAdmin.name"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员手机号</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="updateAdmin.tel"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员账号</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control"
+                                       v-model="updateAdmin.user"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员密码</label>
+                            <div class="col-sm-9">
+                                <input type="password"
+                                       class="form-control"
+                                       v-model="updateAdmin.password"
+                                       placeholder="请输入管理员密码"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">状态</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" v-model="updateAdmin.status">
+                                    <option v-for="status in statusList"  v-bind:value="status.id" >{{status.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @click="updateadmin()">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="addModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" style="float: left;">添加/修改 管理员</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+
+                    <form class="form-horizontal" role="form">
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员类型</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" v-model="addAdmin.type">
+                                    <option selected="selected">请选择管理员类型</option>
+                                    <option v-for="admin in admins"  v-bind:value="admin" >{{admin}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">门店</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" v-model="addAdmin.shopIds">
+                                    <option v-for="shopIds in shopIdList"  v-bind:value="shopIds.id" >{{shopIds.name}}</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员姓名</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control" v-model="addAdmin.name"
+                                       placeholder="请输入管理员姓名"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员手机号</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control" v-model="addAdmin.tel"
+                                       placeholder="请输入管理员手机号(仅限于数字)"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员账号</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control" v-model="addAdmin.user"
+                                       placeholder="请输入管理员账号"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">管理员密码</label>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       class="form-control" v-model="addAdmin.password"
+                                       placeholder="请输入管理员密码"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">状态</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" v-model="addAdmin.status">
+                                    <option v-for="status in statusList"  v-bind:value="status.id" >{{status.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @click="addadmin()">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+
+</div>
+
+
+<script>
+    var v = new Vue({
+        el: "#app",
+        data: {
+            adminList: {},
+            updateAdmin: {},
+            addAdmin: {},
+            shopIdList:{},
+            statusList:[{id:1,name:"禁用"},{id:0,name:"启用"}],
+            admins:{},
+            shopId:0
+        },
+        methods: {
+            update(admin) {
+                this.updateAdmin = admin;
+                $("#updateModel").modal('show');
+            },
+            del(admin) {
+                var that = this;
+                var params = new URLSearchParams();
+                console.log("id:"+admin.id);
+                params.append('id', admin.id);
+                // axios.post('/min/deleteAdmin', params)
+                //     .then(function (response) {
+                //         console.log(response.data.responseResult);
+                //         that.getAll();
+                //     })
+                //     .catch(function (error) {
+                //         console.log(error);
+                //     });
+            },
+            add() {
+                // var that = this;
+                // that.addAdmin.shopIds=0;
+                $("#addModel").modal('show');
+            },
+            updateadmin() {
+
+                var that = this;
+                var params = new URLSearchParams();
+                params.append('id', that.updateAdmin.id);
+                params.append('type', that.updateAdmin.type);
+                params.append('shopIds', that.updateAdmin.shopIds);
+                params.append('name', that.updateAdmin.name);
+                params.append('tel', that.updateAdmin.tel);
+                params.append('user', that.updateAdmin.user);
+                params.append('status', that.updateAdmin.status);
+                params.append('password', that.updateAdmin.password);
+                console.log("shopIds:"+that.updateAdmin.shopIds);
+                console.log("status:"+that.updateAdmin.status);
+                console.log("type:"+that.updateAdmin.type);
+                console.log("id:"+that.updateAdmin.id);
+                axios.post('/min/changeAdmin', params)
+                    .then(function (response) {
+                        $("#updateModal").modal("hide");
+                        console.log(response.data.responseResult);
+                        that.getAll();
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            addadmin() {
+
+                var that = this;
+                var params = new URLSearchParams();
+                params.append('type1', that.addAdmin.type);
+                params.append('shopIds', that.addAdmin.shopIds);
+                params.append('name', that.addAdmin.name);
+                params.append('tel', that.addAdmin.tel);
+                params.append('user', that.addAdmin.user);
+                params.append('status', that.addAdmin.status);
+                params.append('password', that.addAdmin.password);
+                console.log("shopIds:"+that.addAdmin.shopIds);
+                console.log("status:"+that.addAdmin.status);
+                console.log("type1:"+that.addAdmin.type);
+                axios.post('/min/addUser', params)
+                    .then(function (response) {
+                        $("#addModel").modal("hide");
+                        console.log(response.data.responseResult);
+                        alert(response.data.responseResult);
+                        that.getAll();
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            getAll() {
+                var that = this;
+                var params = new URLSearchParams();
+                params.append('index', '0');
+                params.append('max', '100');
+                axios.post('/min/findAdmin', params)
+                    .then(function (response) {
+                        that.adminList = response.data.responseList;
+                        console.log(response.data.responseList);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+        }, created() {
+            var that = this;
+            var params = new URLSearchParams();
+            var index = 0;
+            var max = 100;
+            params.append('index', index);
+            params.append('max', max);
+            axios.post('/min/findAdmin', params)
+                .then(function (response) {
+                    that.adminList = response.data.responseList;
+                    console.log("adminList:"+response.data.responseList);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
+
+            var params2 = new URLSearchParams();
+            axios.post('/min/getAllType', params2)
+                .then(function (response) {
+                    that.admins = response.data.responseList;
+                    console.log("getAllType:"+response.data.responseList);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
+            var params3 = new URLSearchParams();
+            axios.post('/shopAdmin/find', params3)
+                .then(function (response) {
+                    that.shopIdList = response.data.responseList;
+                    console.log("shopIdList:"+response.data.responseList);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
+
+            // var that = this;
+            // var qs = require('qs');
+            // axios.post('/demo', qs.stringify({'index': 7758521, 'max': 100}, {indices: false}))
+            //     .then(function (response) {
+            //         that.adminList = response.data.responseList;
+            //         console.log(response.data.responseList);
+            //     })
+            //     .catch(function (error) {
+            //         console.log(error);
+            //     });
+        }
+    })
+</script>
+</body>
+</html>

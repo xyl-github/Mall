@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.lin.dao.CategoryMapper">
+    <resultMap id="rm_category" type="top.lin.entity.Category">
+        <id property="cid" column="cid"/>
+        <result property="shopid" column="shopid"/>
+        <result property="type" column="type"/>
+        <result property="priority" column="priority"/>
+        <result property="status" column="status"/>
+        <association property="shop" column="shopid" javaType="top.lin.entity.Shop" fetchType="lazy"
+                     select="top.lin.dao.ShopMapper.inquireShopByShopid"></association>
+    </resultMap>
+    <select id="inquireCategoryByShopid" parameterType="int" resultMap="rm_category">
+        select * from category where shopid = #{shopid}
+    </select>
+
+    <select id="inquireCategoryByCid" parameterType="int" resultMap="rm_category">
+        select * from category where cid = #{cid}
+    </select>
+
+    <insert id="insertCategory" parameterType="top.lin.entity.Category">
+        insert into category(shopid, type, priority, status)
+        values (#{shopid}, #{type}, #{priority}, #{status})
+    </insert>
+
+    <update id="updateCategory" parameterType="top.lin.entity.Category">
+        update category set shopid = #{shopid}, type = #{type}, priority = #{priority}, status = #{status} where cid = #{cid}
+    </update>
+
+    <delete id="deleteCategoryByCid" parameterType="int">
+        delete from category where cid = #{cid}
+    </delete>
+</mapper>

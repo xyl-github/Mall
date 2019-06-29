@@ -1,0 +1,522 @@
+<%@ taglib prefix="v-bind" uri="http://www.springframework.org/tags/form" %>
+<%--
+  Created by IntelliJ IDEA.
+  User: admin
+  Date: 2019/6/22
+  Time: 16:50
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>门店管理</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+    <script src="/js/jquery-3.3.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/vue.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/js/axios.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<div class="container" id="app" style="margin-top: 2%">
+    <div class="container">
+        <div class="row">
+            <form class="form-inline" role="form">
+
+                <div class="form-group">
+                    <label for="lastname" class="control-label">门店：</label>
+                    <select class="form-control" id="lastname" v-model="shopId" @change="change()">
+                        <option v-for="shop in shopIdList" v-bind:value="shop.id" v-if="shop.status==0">{{shop.name}}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-4 "></label>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="control-label col-sm-8 "></label>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-default" style="border-spacing: 1em;border-color: #ececf6"
+                            @click="add()"
+                    >创建
+                    </button>
+                </div>
+
+            </form>
+
+
+        </div>
+    </div>
+    <table class="table table-bordered table-hover tab-content text-center">
+        <tr>
+            <td>楼层id</td>
+            <td>营业场所</td>
+            <td>楼层[数字]</td>
+            <td>楼层名称[汉字]</td>
+            <td>平面图</td>
+            <td>状态</td>
+            <td>是否显示</td>
+            <td>二维码</td>
+            <td>优先级</td>
+            <td>操作</td>
+        </tr>
+        <tr v-for="floor in floorList">
+            <td v-text="floor.id">超级管理员</td>
+            <td v-text="floor.doBusinessSiteName"></td>
+            <td v-text="floor.floor">超级管理员</td>
+            <td v-text="floor.name">15010327826</td>
+            <td><img v-bind:src="floor.imageUrl" @click="show(floor.imageUrl)"/></td>
+            <td v-if="floor.status==0">启用</td>
+            <td v-else>禁用</td>
+            <td v-if="floor.display==0">显示</td>
+            <td v-else>不显示</td>
+            <td>
+                <button type="button" class="btn btn-default" @click="showPicture(floor)"
+                        style="border-spacing: 1em;border-color: #ececf6">生成
+                </button>
+            </td>
+            <td>
+                <div class="cell">
+                <span style="">
+                    <button type="button" class="btn btn-default"
+                            style="border-spacing: 1px;border-color: #ececf6">↑</button>
+                </span>
+                    &nbsp;&nbsp;
+                    <span>
+                    <button type="button" class="btn btn-default"
+                            style="border-spacing: 1px;border-color: #ececf6">↓</button>
+                </span>
+                </div>
+            </td>
+            <td>
+                <button type="button" @click="update(floor)" class="btn btn-default"
+                        style="border-spacing: 1em;border-color: #ececf6">修改
+                </button>
+                <button type="button" class="btn btn-default" style="border-spacing: 1em;border-color: #ececf6">
+                    设置导航路线
+                </button>
+                <button type="button" @click="del(floor)" class="btn btn-danger">删除</button>
+            </td>
+        </tr>
+    </table>
+
+    <div class="modal fade bs-example-modal-lg" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel" style="float: left;">添加/修改 管理员</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+
+                    <form class="bs-example bs-example-form" role="form">
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon"
+                                  style="text-align:center;line-height:18px;">&nbsp;&nbsp;营业场所</span>
+                            <select class="form-control" v-model="addFloor.doBusinessSiteId">
+                                <option v-for="shopPlace in shopPlaceList" v-bind:value="shopPlace.id">{{shopPlace.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="input-group col-md-9" style="margin-top: 15px;">
+                            <span class="input-group-addon">楼层[数字]</span>
+                            <span class="input-group-btn">
+                                <button class="btn" type="button" style="color: #6c757d;background-color: #f9f2f4;"
+                                        @click="cutone()">━</button>
+                            </span>
+                            <input type="text" class="form-control" value="1" v-model="addnum" style="text-align: center"/>
+                            <span class="input-group-btn">
+                                <button class="btn" type="button" style="color: #6c757d;background-color: #f9f2f4;"
+                                        @click="addone()">＋</button>
+                            </span>
+                            <span class="input-group-btn">
+                                <button class="btn" style="color: lightcoral;background-color: #e4b9c0" type="button">此处请填写对应的楼层数字，如，4楼，请填写：4</button>
+                            </span>
+                        </div>
+
+                        <div class="input-group col-md-10" style="margin-top: 15px;">
+                            <span class="input-group-addon">楼层[汉字]</span>
+                            <input type="text" v-model="addFloor.name"
+                                   class="form-control"
+                                   placeholder="请添加楼层"/>
+                            <span class="input-group-btn">
+                            <button class="btn" style="color: lightcoral;background-color: #e4b9c0" type="button">此处请填写对应的楼层汉字，如，4楼，请填写：4F</button>
+                        </span>
+                        </div>
+
+                        <div class="input-group" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;&nbsp;&nbsp;平面图&nbsp;&nbsp;</span>
+                            <div class="text-center" @click="selectFile();"
+                                 style="width: 100px;height: 100px; border: 1px dashed black; border-radius: 5px;">
+                                <div class="fa fa-plus" style="margin-top:42%; color:gray;">
+                                </div>
+                            </div>
+                            <input id="selectFile" type="file" style="display: none;">
+                        </div>
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;状态&nbsp;&nbsp;&nbsp;</span>
+                            <select class="form-control" v-model="addstatus">
+                                <option v-for="status in statusList" v-bind:value="status.id">{{status.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;是否显示</span>
+                            <select class="form-control" v-model="adddisplay">
+                                <option v-for="display in displayList" v-bind:value="display.id">{{display.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @click="addFloorOne()">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="updateModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" style="float: left;">添加/修改 管理员</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+
+                    <form class="bs-example bs-example-form" role="form">
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon"
+                                  style="text-align:center;line-height:18px;">&nbsp;&nbsp;营业场所</span>
+                            <select class="form-control" v-model="updateFloor.doBusinessSiteId">
+                                <option v-for="shopPlace in shopPlaceList" v-bind:value="shopPlace.id">{{shopPlace.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="input-group col-md-9" style="margin-top: 15px;">
+                            <span class="input-group-addon">楼层[数字]</span>
+                            <span class="input-group-btn">
+                                <button class="btn" type="button" style="color: #6c757d;background-color: #f9f2f4;"
+                                        @click="cutone1(updateFloor)">━</button>
+                            </span>
+                            <%--/*v-model="updateFloor.floor"*/--%>
+                            <input type="text" class="form-control" value="1" v-model="updatenum" style="text-align: center"/>
+                            <span class="input-group-btn">
+                                <button class="btn" type="button" style="color: #6c757d;background-color: #f9f2f4;"
+                                        @click="addone1(updateFloor)">＋</button>
+                            </span>
+                            <span class="input-group-btn">
+                                <button class="btn" style="color: lightcoral;background-color: #e4b9c0" type="button">此处请填写对应的楼层数字，如，4楼，请填写：4</button>
+                            </span>
+                        </div>
+
+                        <div class="input-group col-md-10" style="margin-top: 15px;">
+                            <span class="input-group-addon">楼层[汉字]</span>
+                            <input type="text"
+                                   class="form-control" v-model="updateFloor.name"
+                                   placeholder="请添加楼层"/>
+                            <span class="input-group-btn">
+                            <button class="btn" style="color: lightcoral;background-color: #e4b9c0" type="button">此处请填写对应的楼层汉字，如，4楼，请填写：4F</button>
+                        </span>
+                        </div>
+
+                        <div class="input-group" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;&nbsp;&nbsp;平面图&nbsp;&nbsp;</span>
+                            <div class="text-center" onclick="selectFile2();" id="images"
+                                 v-bind:style="{backgroundImage:'url(' + updateFloor.imageUrl + ')',width: '100px',height: '100px',border: '1px dashed black'}">
+                                <div class="fa fa-plus" style="margin-top:42%; color:gray;">
+                                </div>
+                            </div>
+                            <input id="selectFile2" type="file" style="display: none;">
+                            <span>
+                                    <button type="button" class="btn btn-default" @click="removeImages();"
+                                            style="border-spacing: 1em;border-color: #ececf6">删除该图片
+                                    </button>
+                            </span>
+                        </div>
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;状态&nbsp;&nbsp;&nbsp;</span>
+                            <select class="form-control" v-model="updateFloor.status">
+                                <option v-for="status in statusList" v-bind:value="status.id">{{status.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="input-group col-md-4" style="margin-top: 15px;">
+                            <span class="input-group-addon">&nbsp;&nbsp;是否显示</span>
+                            <select class="form-control" v-model="updateFloor.display">
+                                <option v-for="display in displayList" v-bind:value="display.id">{{display.name}}
+                                </option>
+                            </select>
+                        </div>
+
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @click="updateFloorOne()">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+
+    <div class="modal fade bs-example-modal-lg" id="showPictureModel" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <img v-bind:src="qrcodeImage"
+                         style="max-width: 80%; height: auto; display: block; margin: 0px auto;"/>
+                    <div class="row" style="margin-left: 33%;margin-top: 50px">
+                        <span style="width:200px;height: 32px;color:deepskyblue;background-color:lightblue">{{qrcodeText}}</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="showModel" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <img v-bind:src="img"
+                         style="max-width: 80%; height: auto; display: block; margin: 0px auto;"/>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+</div>
+
+
+<script>
+    var v = new Vue({
+        el: "#app",
+        data: {
+            floorList: {},
+            shopIdList: {},
+            shopId: "",
+            addstatus:"0",
+            adddisplay:"0",
+            shopPlaceList:{},
+            addFloor: {},
+            addnum: "1",
+            updatenum:"",
+            qrcodeImage: [],
+            qrcodeText: [],
+            updateFloor: {},
+            img:[],
+            statusList: [{id: 1, name: "禁用"}, {id: 0, name: "启用"}],
+            displayList: [{id: 1, name: "不显示"}, {id: 0, name: "显示"}],
+        },
+        methods: {
+            change() {
+                var that = this;
+                axios.post('/floorAdmin/find/'+that.shopId+'/floors')
+                    .then(function (response) {
+                        console.log(response.data.responseList);
+                        that.floorList = response.data.responseList;
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            cutone() {
+                if (this.addnum > -10)
+                    return this.addnum--;
+            },
+            cutone1() {
+                if (this.updatenum > -10)
+                    return this.updatenum--;
+            },
+            removeImages() {
+                $("#images").css("background-image", "url()");
+            },
+            addone() {
+                return this.addnum++;
+            },
+            addone1() {
+                return this.updatenum++;
+            },
+            selectFile() {
+                $("#selectFile").trigger("click");
+            },
+            selectFile2() {
+                $("#selectFile2").trigger("click");
+            },
+            update(floor) {
+                var that = this;
+                axios
+                    .post('/doBusinessSite/find?shopId='+that.shopId)
+                    .then(function (response) {
+                        that.shopPlaceList = response.data.responseList;
+                        console.log(response.data.responseList);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                that.updatenum = floor.floor;
+                that.updateFloor = floor;
+                $("#updateModal").modal('show');
+            },
+            updateFloorOne: function () {
+                var id = this.updateFloor.id;
+                var name = this.updateFloor.name;
+                var status = this.updateFloor.status;
+                var display = this.updateFloor.display;
+                var imageUrl = this.updateFloor.imageUrl;
+                var floor = this.updateFloor.floor;
+                var doBusinessSiteId = this.updateFloor.doBusinessSiteId;
+                var that = this;
+                var params = new URLSearchParams();
+                params.append('id', that.updateFloor.id);
+                params.append('name', that.updateFloor.name);
+                params.append('status', that.addstatus);
+                params.append('display', that.adddisplay);
+                params.append('imageUrl', that.updateFloor.imageUrl);
+                params.append('floor', that.updatenum);
+                params.append('doBusinessSiteId', that.updateFloor.doBusinessSiteId);
+                params.append('shopId', that.shopId);
+                axios.post('/floorAdmin/modify', params)
+                    .then(function (response) {
+                        $("#updateModal").modal("hide");
+                        alert("修改成功");
+                        console.log(response.data.status);
+                        that.getAll();
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            del(floor) {
+                var that = this;
+                axios.post('/floorAdmin/delete?id='+floor.id)
+                    .then(function (response) {
+                        console.log(response.data.status);
+                        that.getAll();
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            showPicture: function (floor) {
+                this.qrcodeImage = floor.qrcodeImage;
+                this.qrcodeText = floor.qrcodeText;
+                $("#showPictureModel").modal('show');
+            },
+            show(img) {
+                this.img = img;
+                $("#showModel").modal('show');
+            },
+            add() {
+                var that = this;
+                axios
+                    .post('/doBusinessSite/find?shopId='+that.shopId)
+                    .then(function (response) {
+                        that.shopPlaceList = response.data.responseList;
+                        console.log(response.data.responseList);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                $("#addModal").modal('show');
+            },
+            addFloorOne: function () {
+                var that = this;
+                var params = new URLSearchParams();
+                params.append('name', that.addFloor.name);
+                params.append('status', that.addstatus);
+                params.append('display', that.adddisplay);
+                params.append('imageUrl', that.addFloor.imageUrl);
+                params.append('floor', that.addnum);
+                params.append('doBusinessSiteId', that.addFloor.doBusinessSiteId);
+                params.append('shopId', that.shopId);
+                axios.post('/floorAdmin/add', params)
+                    .then(function (response) {
+                        $("#addModal").modal("hide");
+                        console.log(response.data.status);
+                        that.getAll();
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            getAll() {
+                var that = this;
+                axios
+                    .post('/floorAdmin/find/1/floors')
+                    .then(function (response) {
+                        that.shopId = 1;
+                        that.floorList = response.data.responseList;
+                        console.log(response.data.responseList);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+        }, created() {
+            var that = this;
+
+            axios.post('/shopAdmin/find')
+                .then(function (response) {
+                    that.shopIdList = response.data.responseList;
+                    console.log(response.data.responseList);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
+            axios
+                .post('/floorAdmin/find/1/floors')
+                .then(function (response) {
+                    that.shopId = 1;
+                    that.floorList = response.data.responseList;
+                    console.log(response.data.responseList);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+    })
+</script>
+</body>
+</html>

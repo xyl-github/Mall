@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.lin.dao.ShopMapper">
+
+    <resultMap id="rm_shop" type="top.lin.entity.Shop">
+        <id property="sid" column="sid"/>
+        <result property="sname" column="sname"/>
+        <result property="address" column="address"/>
+        <result property="image" column="image"/>
+        <result property="tel" column="tel"/>
+        <result property="businessHours" column="business_hours"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="hotSearch" column="hot_search"/>
+        <result property="status" column="status"/>
+        <result property="qrcodeImage" column="qrcode_image"/>
+        <result property="qrcodeText" column="qrcode_text"/>
+    </resultMap>
+
+    <select id="inquireShopByBsid" resultMap="rm_shop">
+        select shop.* from shop, business_site where business_site.shopid = shop.sid and business_site.bsid = #{bsid}
+    </select>
+
+    <select id="inquireAllShops" resultMap="rm_shop">
+        select * from shop;
+    </select>
+
+    <select id="inquireShopByShopid" resultMap="rm_shop">
+        select * from shop where sid = #{shopid}
+    </select>
+
+    <insert id="insertShop" parameterType="top.lin.entity.Shop" useGeneratedKeys="true" keyProperty="sid">
+        insert into shop(sname, address, image, tel, business_hours, longitude, latitude, hot_search, status, qrcode_image)
+        values(#{sname}, #{address}, #{image}, #{tel}, #{businessHours}, #{longitude}, #{latitude}, #{hotSearch}, #{status}, #{qrcodeImage})
+    </insert>
+
+    <update id="updateShop" parameterType="top.lin.entity.Shop">
+        update shop set sname = #{sname}, address = #{address}, image = #{image}, tel = #{tel}, business_hours = #{businessHours},
+        longitude = #{longitude}, latitude = #{latitude}, hot_search = #{hotSearch}, status = #{status}, qrcode_image = #{qrcodeImage} where sid = #{sid}
+    </update>
+
+    <delete id="deleteShopBySid" parameterType="int">
+        delete from shop where sid = #{sid}
+    </delete>
+</mapper>

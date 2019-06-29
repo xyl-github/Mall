@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+    <!-- 读取属性 -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath*:*.properties"></property>
+    </bean>
+    <!-- 配置DataSource -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${driverClassName}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+    <!-- 配置工厂 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:mybatis.cfg.xml"></property>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" id="configurer">
+        <property name="basePackage" value="top.lin.dao"/>
+    </bean>
+    <!-- 配置声明式事务 -->
+    <!-- 事务管理器 -->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <bean class="top.lin.filter.LoginFilter" id="loginFilter"></bean>
+
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="inquire*" read-only="true"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut expression="execution(* top.lin.service.*.*(..))" id="pointcut"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+    </aop:config>
+
+    <bean class="redis.clients.jedis.JedisPoolConfig" id="jedisPoolConfig">
+        <property name="maxIdle" value="${jedis.maxIdle}"/>
+        <property name="maxTotal" value="${jedis.maxTotal}"/>
+        <property name="maxWaitMillis" value="${jedis.maxWait}"/>
+    </bean>
+    <bean class="redis.clients.jedis.JedisPool" id="jedisPool">
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
+        <constructor-arg name="host" value="${jedis.host}"/>
+        <constructor-arg name="port" value="${jedis.port}"/>
+        <constructor-arg name="timeout" value="${jedis.timeout}"/>
+        <constructor-arg name="password" value="${jedis.password}"/>
+    </bean>
+
+    <!-- 配置扫描注解 -->
+    <context:component-scan base-package="top.lin.service, top.lin.dao"></context:component-scan>
+</beans>
